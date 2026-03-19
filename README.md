@@ -1,6 +1,6 @@
 # 🛡️ CyberSentinel - Password Breach Scanner & Generator
 
-**Live Demo:** [ใส่ลิงก์ GitHub Pages ที่ได้มาตรงนี้]
+**Live Demo:** [(https://athaporn29.github.io/cybersentinel-password-scanner/)]
 
 ## 📌 About The Project
 CyberSentinel is a modern, real-time web application designed to enhance cybersecurity awareness. It allows users to scan their passwords against global data breach databases (via HaveIBeenPwned API) and generate mathematically secure passwords on the fly.
