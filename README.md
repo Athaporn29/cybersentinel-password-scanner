@@ -17,7 +17,7 @@ CyberSentinel Password Breach Checker 🛡️
 🚀 How to Install
 - Clone repository นี้ลงในเครื่องของคุณ
 - ดับเบิลคลิกเปิดไฟล์ `index.html` บน Web Browser เพื่อรันระบบทดสอบได้ทันที
-- *หรือเข้าใช้งานผ่าน GitHub Pages ได้โดยตรงที่:* [ใส่ลิงก์ GitHub Pages ของนายตรงนี้]
+- *หรือเข้าใช้งานผ่าน GitHub Pages ได้โดยตรงที่:* [ https://athaporn29.github.io/cybersentinel-password-scanner/ ]
 
 📁 Project Structure
 - index.html: ไฟล์หลักที่รวมโครงสร้าง Dashboard ธีม Neon, การเชื่อมต่อ API และ Logic สุ่มรหัสผ่านไว้ในไฟล์เดียว
