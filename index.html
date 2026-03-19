@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberSentinel | Breach Scanner & Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { background-color: #050505; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'Fira Code', monospace; }
+        
+        .glow-cyan { box-shadow: 0 0 20px rgba(0, 240, 255, 0.15); border: 1px solid rgba(0, 240, 255, 0.4); }
+        .glow-red { box-shadow: 0 0 20px rgba(255, 0, 60, 0.2); border: 1px solid rgba(255, 0, 60, 0.5); }
+        .glow-green { box-shadow: 0 0 20px rgba(0, 255, 65, 0.15); border: 1px solid rgba(0, 255, 65, 0.4); }
+        
+        .text-neon-cyan { color: #00f0ff; text-shadow: 0 0 10px rgba(0, 240, 255, 0.5); }
+        .text-neon-red { color: #ff003c; text-shadow: 0 0 10px rgba(255, 0, 60, 0.5); }
+        .text-neon-green { color: #00ff41; text-shadow: 0 0 10px rgba(0, 255, 65, 0.5); }
+        
+        .scan-line { background: linear-gradient(90deg, transparent, #00f0ff, transparent); animation: scan 2s linear infinite; }
+        @keyframes scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+        .cursor-blink { animation: blink 1s step-end infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        #terminal-box::-webkit-scrollbar { width: 4px; }
+        #terminal-box::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); border-radius: 4px; }
+        #terminal-box::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.4); border-radius: 4px; }
+        
+        /* สไตล์สำหรับ Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px; width: 16px;
+            border-radius: 50%;
+            background: #00f0ff;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px;
+            cursor: pointer;
+            background: #1e293b;
+            border-radius: 2px;
+        }
+        
+        /* Custom Checkbox */
+        .cyber-checkbox {
+            appearance: none;
+            width: 16px; height: 16px;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            background-color: #020617;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+        .cyber-checkbox:checked {
+            background-color: rgba(0, 240, 255, 0.2);
+            border-color: #00f0ff;
+        }
+        .cyber-checkbox:checked::after {
+            content: '';
+            position: absolute;
+            left: 4px; top: 1px;
+            width: 5px; height: 10px;
+            border: solid #00f0ff;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#050505] to-black relative overflow-x-hidden">
+    
+    <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTAgMGg0MHY0MEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0wIDM5LjVoNDBNMzkuNSAwdi00MCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDMwKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+')] pointer-events-none"></div>
+
+    <div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-5 gap-8 relative z-10">
+        
+        <div id="main-card" class="lg:col-span-3 glow-cyan bg-black/60 backdrop-blur-xl p-8 rounded-2xl w-full relative transition-all duration-500 flex flex-col h-full">
+            <div class="absolute top-0 left-0 w-full h-[2px] overflow-hidden rounded-t-2xl">
+                <div id="scanner-line" class="scan-line w-full h-full"></div>
+            </div>
+
+            <div class="flex items-center gap-3 mb-8">
+                <i id="status-icon" data-lucide="shield" class="text-[#00f0ff] w-8 h-8 transition-colors duration-300"></i>
+                <div>
+                    <h1 class="font-mono text-neon-cyan text-xl font-bold tracking-widest uppercase">Breach_Scanner_v1.0</h1>
+                    <p id="status-text" class="text-slate-500 text-xs font-mono mt-1">Status: Awaiting input...</p>
+                </div>
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <label class="font-mono text-slate-400 text-sm flex items-center gap-2">
+                    <i data-lucide="terminal-square" class="w-4 h-4 text-[#00f0ff]"></i> Enter target password:
+                </label>
+                <div class="relative">
+                    <input type="password" id="password-input" placeholder="••••••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-4 font-mono text-lg text-white outline-none focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all placeholder-slate-800">
+                    <button id="analyze-btn" onclick="startAnalysis()" class="absolute right-2 top-2 bottom-2 bg-[#00f0ff]/10 text-[#00f0ff] hover:bg-[#00f0ff]/20 px-4 rounded-md font-mono text-sm font-bold transition-all border border-[#00f0ff]/30 flex items-center gap-2">
+                        <i data-lucide="cpu" class="w-4 h-4"></i> ANALYZE
+                    </button>
+                </div>
+
+                <div class="mt-2">
+                    <div class="flex gap-1 h-1.5 w-full bg-slate-900 rounded-full overflow-hidden border border-slate-800/50">
+                        <div id="meter-1" class="h-full w-1/4 transition-all duration-300 bg-transparent"></div>
+                        <div id="meter-2" class="h-full w-1/4 transition-all duration-300 bg-transparent"></div>
+                        <div id="meter-3" class="h-full w-1/4 transition-all duration-300 bg-transparent"></div>
+                        <div id="meter-4" class="h-full w-1/4 transition-all duration-300 bg-transparent"></div>
+                    </div>
+                    <div class="flex justify-between mt-2">
+                        <span id="strength-text" class="text-[10px] font-mono text-slate-600 uppercase tracking-widest">WAITING FOR DATA...</span>
+                        <span id="length-text" class="text-[10px] font-mono text-slate-600">LEN: 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="terminal-box" class="flex-1 bg-[#0a0a0a] border border-slate-800 rounded-lg p-4 font-mono text-xs text-slate-400 min-h-[200px] overflow-y-auto relative hidden">
+                <div id="terminal-content" class="space-y-2"></div>
+                <span class="cursor-blink text-[#00f0ff]">█</span>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 flex flex-col gap-6">
+            
+            <div class="glow-cyan bg-black/60 backdrop-blur-xl p-6 rounded-2xl border border-slate-800 flex-1 relative flex flex-col">
+                <h3 class="font-mono text-[#00f0ff] text-sm uppercase font-bold flex items-center gap-2 mb-6">
+                    <i data-lucide="key" class="w-4 h-4"></i> Secure Generator
+                </h3>
+                
+                <div class="bg-slate-950 border border-slate-800 rounded-lg p-4 mb-6 flex justify-between items-center group relative">
+                    <span id="generated-password" class="font-mono text-lg text-slate-300 tracking-wider break-all pr-8">Click Generate</span>
+                    <button onclick="copyPassword()" class="text-slate-500 hover:text-[#00f0ff] transition-colors absolute right-4" title="Copy to clipboard">
+                        <i data-lucide="copy" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-6 flex-1">
+                    <div>
+                        <div class="flex justify-between text-xs font-mono text-slate-400 mb-2">
+                            <span>Password Length</span>
+                            <span id="slider-val" class="text-[#00f0ff]">16</span>
+                        </div>
+                        <input type="range" id="length-slider" min="8" max="32" value="16" oninput="updateSlider(this.value)">
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" id="chk-upper" class="cyber-checkbox" checked>
+                            <span class="text-sm font-mono text-slate-400 group-hover:text-slate-200 transition-colors">Uppercase (A-Z)</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" id="chk-lower" class="cyber-checkbox" checked>
+                            <span class="text-sm font-mono text-slate-400 group-hover:text-slate-200 transition-colors">Lowercase (a-z)</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" id="chk-num" class="cyber-checkbox" checked>
+                            <span class="text-sm font-mono text-slate-400 group-hover:text-slate-200 transition-colors">Numbers (0-9)</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" id="chk-sym" class="cyber-checkbox" checked>
+                            <span class="text-sm font-mono text-slate-400 group-hover:text-slate-200 transition-colors">Symbols (!@#$%)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button onclick="generatePassword()" class="mt-6 w-full py-3 bg-[#00f0ff]/10 text-[#00f0ff] hover:bg-[#00f0ff]/20 rounded-lg font-mono text-sm font-bold transition-all border border-[#00f0ff]/30 flex items-center justify-center gap-2">
+                    <i data-lucide="zap" class="w-4 h-4"></i> GENERATE NEW PASSWORD
+                </button>
+            </div>
+
+            <div class="bg-black/60 backdrop-blur-xl border border-slate-800 p-6 rounded-xl relative overflow-hidden">
+                <div class="absolute left-0 top-0 w-1 h-full bg-slate-800"></div>
+                
+                <h3 class="font-mono text-slate-300 text-xs uppercase font-bold mb-3 flex items-center gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-slate-400"></i> Security Guidelines
+                </h3>
+                <ul class="text-[11px] text-slate-500 font-mono space-y-2 leading-relaxed pl-2">
+                    <li>• Never reuse the same password across multiple platforms.</li>
+                    <li>• A password longer than 12 characters is mathematically harder to crack.</li>
+                    <li>• Enable Two-Factor Authentication (2FA) wherever possible.</li>
+                </ul>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="toast" class="fixed bottom-6 right-6 bg-[#00f0ff]/20 border border-[#00f0ff] text-[#00f0ff] font-mono text-sm px-6 py-3 rounded-lg shadow-[0_0_15px_rgba(0,240,255,0.3)] transition-all duration-300 transform translate-y-20 opacity-0 z-50 flex items-center gap-2">
+        <i data-lucide="check-circle" class="w-4 h-4"></i> Copied to clipboard!
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // ----------------------------------------------------
+        // ส่วนของ Secure Password Generator (ของใหม่ฝั่งขวา)
+        // ----------------------------------------------------
+        function updateSlider(val) {
+            document.getElementById('slider-val').innerText = val;
+            generatePassword(); // เลื่อนปุ๊บ สุ่มใหม่ปั๊บ
+        }
+
+        function generatePassword() {
+            const length = document.getElementById('length-slider').value;
+            const hasUpper = document.getElementById('chk-upper').checked;
+            const hasLower = document.getElementById('chk-lower').checked;
+            const hasNum = document.getElementById('chk-num').checked;
+            const hasSym = document.getElementById('chk-sym').checked;
+
+            const upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const lowerChars = "abcdefghijklmnopqrstuvwxyz";
+            const numChars = "0123456789";
+            const symChars = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
+
+            let allowedChars = "";
+            if (hasUpper) allowedChars += upperChars;
+            if (hasLower) allowedChars += lowerChars;
+            if (hasNum) allowedChars += numChars;
+            if (hasSym) allowedChars += symChars;
+
+            // ถ้า User ไม่ติ๊กอะไรเลย ให้บังคับติ๊ก Lowercase
+            if (allowedChars === "") {
+                document.getElementById('chk-lower').checked = true;
+                allowedChars = lowerChars;
+            }
+
+            let password = "";
+            for (let i = 0; i < length; i++) {
+                const randomIndex = Math.floor(Math.random() * allowedChars.length);
+                password += allowedChars[randomIndex];
+            }
+
+            const pwdDisplay = document.getElementById('generated-password');
+            pwdDisplay.innerText = password;
+            pwdDisplay.classList.remove('text-slate-500');
+            pwdDisplay.classList.add('text-[#00f0ff]');
+        }
+
+        function copyPassword() {
+            const pwd = document.getElementById('generated-password').innerText;
+            if (pwd === "Click Generate" || !pwd) return;
+
+            navigator.clipboard.writeText(pwd).then(() => {
+                showToast();
+            });
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        // Generate ทันทีที่โหลดหน้าเว็บเสร็จ
+        generatePassword();
+
+        // ใส่ Event Listener ให้ Checkbox ทุกตัว เวลาติ๊กเข้าออกให้สุ่มรหัสใหม่เลย
+        document.querySelectorAll('.cyber-checkbox').forEach(chk => {
+            chk.addEventListener('change', generatePassword);
+        });
+
+
+        // ----------------------------------------------------
+        // ส่วนของ Scanner เดิม (ฝั่งซ้าย) ไม่มีการเปลี่ยนแปลง
+        // ----------------------------------------------------
+        document.getElementById('password-input').addEventListener('input', function(e) {
+            const val = e.target.value;
+            document.getElementById('length-text').innerText = `LEN: ${val.length}`;
+            let score = 0;
+            if (val.length > 0) score++; 
+            if (val.length >= 8) score++; 
+            if (/[A-Z]/.test(val) && /[a-z]/.test(val) && /[0-9]/.test(val)) score++; 
+            if (/[^A-Za-z0-9]/.test(val)) score++; 
+
+            const finalScore = Math.min(score, 4);
+            const m1 = document.getElementById('meter-1');
+            const m2 = document.getElementById('meter-2');
+            const m3 = document.getElementById('meter-3');
+            const m4 = document.getElementById('meter-4');
+            const sText = document.getElementById('strength-text');
+
+            [m1, m2, m3, m4].forEach(m => m.className = 'h-full w-1/4 transition-all duration-300 bg-transparent');
+
+            if (finalScore === 0) {
+                sText.innerText = "WAITING FOR DATA...";
+                sText.className = "text-[10px] font-mono text-slate-600 uppercase tracking-widest";
+            } else if (finalScore === 1 || finalScore === 2) {
+                m1.classList.add('bg-rose-500', 'shadow-[0_0_10px_rgba(244,63,94,0.8)]');
+                if(finalScore === 2) m2.classList.add('bg-rose-500', 'shadow-[0_0_10px_rgba(244,63,94,0.8)]');
+                sText.innerText = "VULNERABILITY DETECTED (WEAK)";
+                sText.className = "text-[10px] font-mono text-rose-500 uppercase tracking-widest";
+            } else if (finalScore === 3) {
+                m1.classList.add('bg-yellow-400', 'shadow-[0_0_10px_rgba(250,204,21,0.8)]');
+                m2.classList.add('bg-yellow-400', 'shadow-[0_0_10px_rgba(250,204,21,0.8)]');
+                m3.classList.add('bg-yellow-400', 'shadow-[0_0_10px_rgba(250,204,21,0.8)]');
+                sText.innerText = "ACCEPTABLE ENCRYPTION (MODERATE)";
+                sText.className = "text-[10px] font-mono text-yellow-400 uppercase tracking-widest";
+            } else if (finalScore === 4) {
+                m1.classList.add('bg-[#00ff41]', 'shadow-[0_0_10px_rgba(0,255,65,0.8)]');
+                m2.classList.add('bg-[#00ff41]', 'shadow-[0_0_10px_rgba(0,255,65,0.8)]');
+                m3.classList.add('bg-[#00ff41]', 'shadow-[0_0_10px_rgba(0,255,65,0.8)]');
+                m4.classList.add('bg-[#00ff41]', 'shadow-[0_0_10px_rgba(0,255,65,0.8)]');
+                sText.innerText = "MAXIMUM SECURITY (STRONG)";
+                sText.className = "text-[10px] font-mono text-[#00ff41] uppercase tracking-widest text-neon-green";
+            }
+        });
+
+        async function sha1(str) {
+            const buffer = new TextEncoder().encode(str);
+            const hash = await crypto.subtle.digest('SHA-1', buffer);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+        }
+
+        async function typeWriter(text, elementId, speed = 15, colorClass = "text-slate-300") {
+            const container = document.getElementById(elementId);
+            const line = document.createElement('div');
+            line.className = colorClass;
+            container.appendChild(line);
+            for (let i = 0; i < text.length; i++) {
+                line.innerHTML += text.charAt(i);
+                document.getElementById('terminal-box').scrollTop = document.getElementById('terminal-box').scrollHeight;
+                await new Promise(r => setTimeout(r, speed));
+            }
+        }
+
+        async function startAnalysis() {
+            const password = document.getElementById('password-input').value;
+            if (!password) return;
+
+            document.getElementById('terminal-box').classList.remove('hidden');
+            document.getElementById('terminal-content').innerHTML = '';
+            document.getElementById('analyze-btn').disabled = true;
+            document.getElementById('analyze-btn').innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i> SCANNING...';
+            lucide.createIcons();
+            
+            updateUIState('scanning');
+
+            await typeWriter(`> INITIALIZING DEEP SCAN FOR TARGET...`, 'terminal-content', 10, 'text-[#00f0ff]');
+            await typeWriter(`  [+] Length: ${password.length} characters`, 'terminal-content');
+            await new Promise(r => setTimeout(r, 400));
+            
+            await typeWriter(`> Encrypting data to SHA-1 format...`, 'terminal-content');
+            const hash = await sha1(password);
+            const prefix = hash.substring(0, 5); 
+            const suffix = hash.substring(5);
+            
+            await typeWriter(`  [+] Hash Generated: ${prefix}[REDACTED]`, 'terminal-content', 10, 'text-slate-500');
+            await typeWriter(`> Establishing secure connection to HaveIBeenPwned database...`, 'terminal-content');
+
+            try {
+                const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+                const data = await response.text();
+                
+                const hashes = data.split('\n');
+                let isPwned = false;
+                let matchCount = 0;
+
+                for (let line of hashes) {
+                    const [hashSuffix, count] = line.split(':');
+                    if (hashSuffix.trim() === suffix) {
+                        isPwned = true;
+                        matchCount = count.trim();
+                        break;
+                    }
+                }
+
+                await new Promise(r => setTimeout(r, 800));
+
+                await typeWriter(`> Analyzing data streams...`, 'terminal-content');
+                await typeWriter(`=========================================`, 'terminal-content', 5, 'text-slate-600');
+
+                if (isPwned) {
+                    await typeWriter(`> CRITICAL ALERT: DATA BREACH DETECTED!`, 'terminal-content', 20, 'text-neon-red font-bold');
+                    await typeWriter(`  [-] Target password found in ${Number(matchCount).toLocaleString()} known breaches.`, 'terminal-content', 15, 'text-rose-400');
+                    await typeWriter(`  [!] Recommendation: Generate a new secure password immediately.`, 'terminal-content', 15, 'text-yellow-400');
+                    updateUIState('danger');
+
+                } else {
+                    await typeWriter(`> SCAN COMPLETE: ZERO BREACHES FOUND.`, 'terminal-content', 20, 'text-neon-green font-bold');
+                    await typeWriter(`  [+] Target password is safe from known databases.`, 'terminal-content', 15, 'text-emerald-400');
+                    updateUIState('safe');
+                }
+                await typeWriter(`=========================================`, 'terminal-content', 5, 'text-slate-600');
+
+            } catch (error) {
+                await typeWriter(`> ERROR: Connection failed. Terminal aborted.`, 'terminal-content', 20, 'text-yellow-500');
+                updateUIState('idle');
+            }
+
+            document.getElementById('analyze-btn').disabled = false;
+            document.getElementById('analyze-btn').innerHTML = '<i data-lucide="cpu" class="w-4 h-4"></i> ANALYZE';
+            lucide.createIcons();
+        }
+
+        function updateUIState(state) {
+            const card = document.getElementById('main-card');
+            const icon = document.getElementById('status-icon');
+            const statusText = document.getElementById('status-text');
+            const scanLine = document.getElementById('scanner-line');
+
+            card.classList.remove('glow-cyan', 'glow-red', 'glow-green');
+            
+            if (state === 'scanning') {
+                card.classList.add('glow-cyan');
+                icon.setAttribute('data-lucide', 'refresh-cw');
+                icon.className = 'text-[#00f0ff] w-8 h-8 animate-spin';
+                statusText.innerText = 'Status: Scanning Global Database...';
+                statusText.className = 'text-[#00f0ff] text-xs font-mono mt-1 animate-pulse';
+                scanLine.style.background = 'linear-gradient(90deg, transparent, #00f0ff, transparent)';
+            } else if (state === 'danger') {
+                card.classList.add('glow-red');
+                icon.setAttribute('data-lucide', 'alert-triangle');
+                icon.className = 'text-[#ff003c] w-8 h-8 animate-bounce';
+                statusText.innerText = 'Status: SYSTEM COMPROMISED!';
+                statusText.className = 'text-[#ff003c] text-xs font-mono mt-1 font-bold';
+                scanLine.style.background = 'linear-gradient(90deg, transparent, #ff003c, transparent)';
+            } else if (state === 'safe') {
+                card.classList.add('glow-green');
+                icon.setAttribute('data-lucide', 'shield-check');
+                icon.className = 'text-[#00ff41] w-8 h-8';
+                statusText.innerText = 'Status: SECURE & ENCRYPTED';
+                statusText.className = 'text-[#00ff41] text-xs font-mono mt-1';
+                scanLine.style.background = 'linear-gradient(90deg, transparent, #00ff41, transparent)';
+            } else {
+                card.classList.add('glow-cyan');
+                icon.setAttribute('data-lucide', 'shield');
+                icon.className = 'text-[#00f0ff] w-8 h-8';
+                statusText.innerText = 'Status: Awaiting input...';
+                statusText.className = 'text-slate-500 text-xs font-mono mt-1';
+            }
+            lucide.createIcons();
+        }
+
+        document.getElementById('password-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') startAnalysis();
+        });
+    </script>
+</body>
+</html>
